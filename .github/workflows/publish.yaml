@@ -50,10 +50,12 @@ jobs:
             type=sha
             type=raw,value=latest
 
-      - name: Build and push image
+      - name: Build and push multi-platform image
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ghcr.io/${{ steps.vars.outputs.repo }}:latest
+            ghcr.io/${{ steps.vars.outputs.repo }}:${{ github.sha }}

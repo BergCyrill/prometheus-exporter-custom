@@ -5,7 +5,7 @@ COPY . .
 RUN go mod tidy
 RUN go build -o exporter ./cmd/main.go
 
-FROM alpine:latest
+FROM alpine:3.21.3
 RUN apk --no-cache add ca-certificates git docker-cli
 WORKDIR /root/
 COPY --from=builder /app/exporter .
