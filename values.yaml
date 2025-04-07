@@ -1,0 +1,56 @@
+image:
+  repository: ghcr.io/BergCyrill/prometheus-exporter-custom
+  tag: latest
+  pullPolicy: IfNotPresent
+
+config:
+  git:
+    - name: "clone_dummy"
+      repo_url: "https://github.com/initialcommit-com/git-dummy.git"
+      type: "clone"
+      interval_seconds: 300
+      auth:
+        header_name: "Authorization"
+        secret_path: /etc/secrets/github_token
+
+    - name: "lsremote_kubernetes"
+      repo_url: "https://github.com/kubernetes/kubernetes.git"
+      type: "ls-remote"
+      interval_seconds: 30
+      auth:
+        header_name: "Authorization"
+        secret_path: /etc/secrets/github_token
+
+    - name: "lsremote_dummy"
+      repo_url: "https://github.com/initialcommit-com/git-dummy.git"
+      type: "ls-remote"
+      interval_seconds: 10
+
+  rest_api:
+    - name: "check_github_workflow_status"
+      first_url: "https://api.github.com/repos/BergCyrill/mediola2mqtt/actions/runs"
+      interval_seconds: 600
+      auth:
+        header_name: "Authorization"
+        secret_path: "/etc/secrets/github-token"
+      follow_up:
+        url_template: "https://api.github.com/repos/BergCyrill/mediola2mqtt/actions/runs/{{.run_id}}"
+        replace:
+          run_id: "workflow_runs.0.id"  # First workflow run ID
+        stop_condition:
+          key: "status"
+          value: "completed"
+        initial_delay_seconds: 2
+        interval_seconds: 15
+        timeout_seconds: 120
+
+  docker:
+    - name: "pull_alpine_from_ghcr"
+      image: "ghcr.io/linuxcontainers/alpine:3.20"
+      registry: "ghcr.io"
+      interval_seconds: 30
+
+
+service:
+  type: ClusterIP
+  port: 80

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "prometheus-exporter.fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "prometheus-exporter.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "prometheus-exporter.name" . }}
+    spec:
+      containers:
+        - name: exporter
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 2112
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: secret-volume
+              mountPath: /etc/secrets
+            - name: docker-auth
+              mountPath: /root/.docker
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "prometheus-exporter.fullname" . }}-config
+        - name: secret-volume
+          secret:
+            secretName: {{ include "prometheus-exporter.fullname" . }}-secrets
+        - name: docker-auth
+          secret:
+            secretName: docker-creds
+            items:
+              - key: .dockerconfigjson
+                path: config.json
