@@ -1,0 +1,33 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task test
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - go test ./...
+
+  test:cover:
+    desc: Run tests with coverage
+    cmds:
+      - go test ./... -coverprofile=coverage.out
+      - go tool cover -func=coverage.out
+
+  test:html:
+    desc: Generate coverage HTML
+    cmds:
+      - go test ./... -coverprofile=coverage.out
+      - go tool cover -html=coverage.out
+
+  lint:
+    desc: Run golint
+    cmds:
+      - golint ./...
+
+  build:
+    desc: Build exporter
+    cmds:
+      - go build -o exporter ./cmd/main.go
