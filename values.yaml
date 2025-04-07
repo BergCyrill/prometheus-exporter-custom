@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/BergCyrill/prometheus-exporter-custom
+  repository: ghcr.io/bergcyrill/prometheus-exporter-custom
   tag: latest
   pullPolicy: IfNotPresent
 
