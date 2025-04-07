@@ -1,2 +1,3 @@
+exporter
 secrets/*
 !secrets/*.go
