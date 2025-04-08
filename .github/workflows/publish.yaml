@@ -3,6 +3,8 @@ name: Build & Push to GHCR
 on:
   push:
     branches: [main]
+    tags:
+      - 'v*'
     paths:
       - '**.go'
       - 'Dockerfile'
@@ -41,21 +43,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ steps.vars.outputs.repo }}
-          tags: |
-            type=sha
-            type=raw,value=latest
+      - name: Set tags
+        id: tags
+        run: |
+          echo "latest_tag=ghcr.io/${{ steps.vars.outputs.repo }}:latest" >> $GITHUB_OUTPUT
+          echo "sha_tag=ghcr.io/${{ steps.vars.outputs.repo }}:${{ github.sha }}" >> $GITHUB_OUTPUT
+          
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            version_tag="ghcr.io/${{ steps.vars.outputs.repo }}:${GITHUB_REF_NAME}"
+            echo "version_tag=$version_tag" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Build and push multi-platform image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ steps.vars.outputs.repo }}:latest
-            ghcr.io/${{ steps.vars.outputs.repo }}:${{ github.sha }}
+            ${{ steps.tags.outputs.latest_tag }}
+            ${{ steps.tags.outputs.sha_tag }}
+            ${{ steps.tags.outputs.version_tag }}
