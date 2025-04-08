@@ -29,6 +29,7 @@ config:
   rest_api:
     - name: "check_github_workflow_status"
       first_url: "https://api.github.com/repos/BergCyrill/mediola2mqtt/actions/runs"
+      type: "follow_up"
       interval_seconds: 600
       auth:
         header_name: "Authorization"
@@ -44,12 +45,23 @@ config:
         interval_seconds: 15
         timeout_seconds: 120
 
+    - name: "simple_health"
+      type: "request"
+      method: "GET"
+      url: "https://dummyjson.com/test"
+      interval_seconds: 10
+      auth:
+      header_name: "Authorization"
+      secret_path: "/etc/secrets/my-api-token"
+      filter:
+        json_query: "status"
+        match: "ok"
+
   docker:
     - name: "pull_alpine_from_ghcr"
       image: "ghcr.io/linuxcontainers/alpine:3.20"
       registry: "ghcr.io"
       interval_seconds: 30
-
 
 service:
   type: ClusterIP
