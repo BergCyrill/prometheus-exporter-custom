@@ -30,11 +30,23 @@ type GitConfig struct {
 
 // RESTAPIConfig REST API config with chained call and conditional polling
 type RESTAPIConfig struct {
-	Name            string       `yaml:"name"`
-	FirstURL        string       `yaml:"first_url"`
-	IntervalSeconds int          `yaml:"interval_seconds"`
-	FollowUp        FollowConfig `yaml:"follow_up"`
-	Auth            *AuthConfig  `yaml:"auth,omitempty"`
+	Name            string            `yaml:"name"`
+	Type            string            `yaml:"type"` // "follow_up" or "request"
+	FirstURL        string            `yaml:"first_url,omitempty"`
+	Method          string            `yaml:"method,omitempty"`
+	URL             string            `yaml:"url,omitempty"`
+	IntervalSeconds int               `yaml:"interval_seconds"`
+	Headers         map[string]string `yaml:"headers,omitempty"`
+	FollowUp        FollowConfig      `yaml:"follow_up,omitempty"`
+	Filter          FilterConfig      `yaml:"filter,omitempty"`
+	Auth            *AuthConfig       `yaml:"auth,omitempty"`
+}
+
+// FilterConfig Config for filtering JSON response
+type FilterConfig struct {
+	JSONQuery string `yaml:"json_query,omitempty"`
+	Regex     string `yaml:"regex,omitempty"`
+	Match     string `yaml:"match"`
 }
 
 // FollowConfig Config for the follow-up URL

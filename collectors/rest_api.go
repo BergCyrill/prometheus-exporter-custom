@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
+	"strings"
 	"text/template"
 	"time"
 
@@ -15,7 +17,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func monitorREST(cfg config.RESTAPIConfig) {
+func monitorFollowUp(cfg config.RESTAPIConfig) {
 	var authHeader string
 	var authKey string
 	if cfg.Auth != nil {
@@ -126,8 +128,68 @@ func tryFollowUp(client *http.Client, url, authKey, authHeader string, cfg confi
 	return match
 }
 
+func monitorRequest(cfg config.RESTAPIConfig) {
+	client := &http.Client{}
+	var authHeader, authKey string
+
+	// Load auth token if configured
+	if cfg.Auth != nil {
+		token, err := secrets.ReadSecret(cfg.Auth.SecretPath)
+		if err == nil {
+			authHeader = token
+			authKey = cfg.Auth.HeaderName
+		} else {
+			log.Printf("[%s] Failed to load auth token: %v", cfg.Name, err)
+		}
+	}
+
+	for {
+		start := time.Now()
+		// Create the request
+		req, _ := http.NewRequest(cfg.Method, cfg.URL, nil)
+
+		if authHeader != "" && authKey != "" {
+			req.Header.Set(authKey, authHeader)
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			metrics.RESTSuccess.WithLabelValues(cfg.Name).Set(0)
+			log.Printf("[%s] Request failed: %v", cfg.Name, err)
+			time.Sleep(time.Duration(cfg.IntervalSeconds) * time.Second)
+			continue
+		}
+
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		content := string(body)
+
+		match := false
+		if cfg.Filter.JSONQuery != "" {
+			value := gjson.Get(content, cfg.Filter.JSONQuery).String()
+			match = value == cfg.Filter.Match
+		} else if cfg.Filter.Regex != "" {
+			re := regexp.MustCompile(cfg.Filter.Regex)
+			match = re.MatchString(content) && strings.Contains(content, cfg.Filter.Match)
+		}
+
+		if match {
+			metrics.RESTSuccess.WithLabelValues(cfg.Name).Set(1)
+		} else {
+			metrics.RESTSuccess.WithLabelValues(cfg.Name).Set(0)
+			log.Printf("[%s] Response did not match filter", cfg.Name)
+		}
+		metrics.RESTCallDuration.WithLabelValues(cfg.Name).Observe(time.Since(start).Seconds())
+		time.Sleep(time.Duration(cfg.IntervalSeconds) * time.Second)
+	}
+}
+
 func handleREST(cfgs []config.RESTAPIConfig) {
 	for _, cfg := range cfgs {
-		go monitorREST(cfg)
+		if cfg.Type == "follow_up" {
+			go monitorFollowUp(cfg)
+		} else if cfg.Type == "request" || cfg.Type == "" {
+			go monitorRequest(cfg)
+		}
 	}
 }
