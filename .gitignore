@@ -1,3 +1,4 @@
 exporter
+coverage.out
 secrets/*
 !secrets/*.go
