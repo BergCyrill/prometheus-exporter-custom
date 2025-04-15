@@ -16,6 +16,7 @@
             pkgs.go_1_24
             pkgs.go-task
             pkgs.minikube
+            pkgs.kubernetes-helm
           ];
           shellHook = ''
             export IN_NIX_SHELL=1
