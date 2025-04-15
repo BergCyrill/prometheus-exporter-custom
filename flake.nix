@@ -15,6 +15,7 @@
           buildInputs = [
             pkgs.go_1_24
             pkgs.go-task
+            pkgs.minikube
           ];
           shellHook = ''
             export IN_NIX_SHELL=1
