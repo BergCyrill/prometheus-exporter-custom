@@ -13,7 +13,7 @@
       in {
         devShells.default = pkgs.mkShell {
           buildInputs = [
-            pkgs.go
+            pkgs.go_1_24
             pkgs.go-task
           ];
           shellHook = ''
