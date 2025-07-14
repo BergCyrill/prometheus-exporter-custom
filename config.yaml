@@ -45,8 +45,8 @@ rest_api:
     url: "https://dummyjson.com/test"
     interval_seconds: 10
     auth:
-    header_name: "Authorization"
-    secret_path: "/etc/secrets/my-api-token"
+      header_name: "Authorization"
+      secret_path: "/etc/secrets/my-api-token"
     filter:
       json_query: "status"
       match: "ok"

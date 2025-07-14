@@ -3,6 +3,7 @@ package metrics
 import "github.com/prometheus/client_golang/prometheus"
 
 var (
+	// GitCloneDuration measures the duration of git clone operations.
 	GitCloneDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "git_clone_duration_seconds",
@@ -11,6 +12,7 @@ var (
 		[]string{"name", "repo"},
 	)
 
+	// GitLsRemoteDuration measures the duration of git ls-remote operations.
 	GitLsRemoteDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "git_ls_remote_duration_seconds",
@@ -19,6 +21,7 @@ var (
 		[]string{"name", "repo"},
 	)
 
+	// RESTCallDuration measures the duration of REST API calls.
 	RESTCallDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "rest_api_call_duration_seconds",
@@ -27,6 +30,7 @@ var (
 		[]string{"name"},
 	)
 
+	// DockerPullDuration measures the duration of docker image pull operations.
 	DockerPullDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "docker_pull_duration_seconds",
@@ -35,6 +39,7 @@ var (
 		[]string{"name", "image"},
 	)
 
+	// GitSuccess indicates whether the last git operation was successful.
 	GitSuccess = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "git_probe_success",
@@ -43,6 +48,7 @@ var (
 		[]string{"name", "repo", "type"},
 	)
 
+	// DockerSuccess indicates whether the last docker pull operation was successful.
 	DockerSuccess = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "docker_pull_success",
@@ -51,6 +57,7 @@ var (
 		[]string{"name", "image"},
 	)
 
+	// RESTSuccess indicates whether the last REST API call was successful.
 	RESTSuccess = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "rest_api_probe_success",

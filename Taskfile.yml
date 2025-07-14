@@ -31,3 +31,8 @@ tasks:
     desc: Build exporter
     cmds:
       - go build -o exporter ./cmd/main.go
+
+  run:
+    desc: Run exporter
+    cmds:
+      - ./exporter

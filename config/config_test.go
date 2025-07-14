@@ -28,3 +28,12 @@ docker: []
 		t.Errorf("unexpected git config: %+v", cfg.Git)
 	}
 }
+
+func TestLoadConfig_FileNotFound(t *testing.T) {
+	tmpFile := "non_existing_test_config.yaml"
+
+	_, err := LoadConfig(tmpFile)
+	if err == nil {
+		t.Fatalf("expected and error but got nil")
+	}
+}

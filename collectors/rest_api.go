@@ -18,21 +18,22 @@ import (
 )
 
 func monitorFollowUp(cfg config.RESTAPIConfig) {
-	var authHeader string
-	var authKey string
-	if cfg.Auth != nil {
-		token, err := secrets.ReadSecret(cfg.Auth.SecretPath)
-		if err == nil {
-			authHeader = token
-			authKey = cfg.Auth.HeaderName
-		} else {
-			log.Printf("[%s] Failed to load auth token: %v", cfg.Name, err)
-		}
-	}
-
 	client := &http.Client{}
 
 	for {
+		var authHeader string
+		var authKey string
+		if cfg.Auth != nil {
+			token, err := secrets.ReadSecret(cfg.Auth.SecretPath)
+			if err != nil {
+				log.Printf("[%s] Failed to load auth token: %v", cfg.Name, err)
+				log.Printf("[%s] Will rerun in %v seconds", cfg.Name, cfg.IntervalSeconds)
+				time.Sleep(time.Duration(cfg.IntervalSeconds) * time.Second)
+				continue
+			}
+			authHeader = token
+			authKey = cfg.Auth.HeaderName
+		}
 		start := time.Now()
 		// First request
 		req, _ := http.NewRequest("GET", cfg.FirstURL, nil)
@@ -132,18 +133,20 @@ func monitorRequest(cfg config.RESTAPIConfig) {
 	client := &http.Client{}
 	var authHeader, authKey string
 
-	// Load auth token if configured
-	if cfg.Auth != nil {
-		token, err := secrets.ReadSecret(cfg.Auth.SecretPath)
-		if err == nil {
-			authHeader = token
-			authKey = cfg.Auth.HeaderName
-		} else {
-			log.Printf("[%s] Failed to load auth token: %v", cfg.Name, err)
-		}
-	}
-
 	for {
+		// Always re-read the token from the secret file every interval
+		if cfg.Auth != nil {
+			token, err := secrets.ReadSecret(cfg.Auth.SecretPath)
+			if err != nil {
+				log.Printf("[%s] Failed to load auth token: %v", cfg.Name, err)
+				log.Printf("[%s] Will rerun in %v seconds", cfg.Name, cfg.IntervalSeconds)
+				time.Sleep(time.Duration(cfg.IntervalSeconds) * time.Second)
+				continue
+			} else {
+				authHeader = token
+				authKey = cfg.Auth.HeaderName
+			}
+		}
 		start := time.Now()
 		// Create the request
 		req, _ := http.NewRequest(cfg.Method, cfg.URL, nil)
